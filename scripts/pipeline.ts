@@ -7,7 +7,7 @@
 
 import { nanoid } from "@/lib/id";
 import { fetchAllSources } from "@/lib/sources";
-import { deduplicateItems, upsertItems, logFetchRun, getLastFetchTime } from "@/lib/db";
+import { deduplicateItems, upsertItems, logFetchRun, getLastFetchTime, pruneOldItems } from "@/lib/db";
 
 const DEFAULT_LOOKBACK_HOURS = 24;
 
@@ -76,6 +76,16 @@ async function main() {
       "[Pipeline] Items were fetched but could not be stored. Check DATABASE_URL."
     );
     process.exit(1);
+  }
+
+  // Step 6: Prune old data (keep Supabase under 500MB)
+  try {
+    const pruned = await pruneOldItems(90);
+    if (pruned > 0) {
+      console.log(`[Pipeline] Pruned ${pruned} items older than 90 days`);
+    }
+  } catch {
+    console.warn("[Pipeline] Pruning failed (non-critical)");
   }
 
   // Summary

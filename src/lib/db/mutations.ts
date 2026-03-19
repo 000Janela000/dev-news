@@ -102,6 +102,23 @@ export async function updateItemSummary(
     .where(sql`${items.id} = ${itemId}`);
 }
 
+/** Delete items older than `days` to stay within Supabase 500MB free tier */
+export async function pruneOldItems(days = 90): Promise<number> {
+  const db = getDb();
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const deleted = await db
+    .delete(items)
+    .where(sql`${items.publishedAt} < ${cutoff}`)
+    .returning({ id: items.id });
+
+  // Also prune old fetch logs
+  await db
+    .delete(fetchLogs)
+    .where(sql`${fetchLogs.fetchedAt} < ${cutoff}`);
+
+  return deleted.length;
+}
+
 export async function getLastFetchTime(): Promise<Date | null> {
   const db = getDb();
   const result = await db
