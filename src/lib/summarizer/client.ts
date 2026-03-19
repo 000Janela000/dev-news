@@ -15,9 +15,9 @@ export function getGeminiClient(): GoogleGenAI {
   return _client;
 }
 
-// Gemini 2.5 Flash-Lite: 15 RPM, 1000 RPD
+// Gemini 2.5 Flash-Lite free tier: 20 RPD, 15 RPM
 export const RATE_LIMIT = {
-  requestsPerMinute: 15,
+  requestsPerDay: 20,
   delayBetweenRequestsMs: 4_200, // ~14 RPM to stay safely under 15
   model: "gemini-2.5-flash-lite",
 } as const;

@@ -8,7 +8,9 @@
 import { getUnsummarizedItems, updateItemSummary } from "@/lib/db";
 import { summarizeBatch } from "@/lib/summarizer";
 
-const MAX_ITEMS = 50; // Stay within Gemini free tier limits per run
+// Gemini free tier: 20 requests/day for flash-lite
+// With 4 cron runs/day, budget 5 per run to stay safe
+const MAX_ITEMS = 5;
 
 async function main() {
   console.log(`\n[Summarizer] Fetching up to ${MAX_ITEMS} unsummarized items...`);
