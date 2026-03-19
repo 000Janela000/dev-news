@@ -10,7 +10,7 @@
 
 ---
 
-## Phase 1: Core Types & Data Architecture `[ ]`
+## Phase 1: Core Types & Data Architecture `[x]`
 
 **Goal**: Define the data model and source adapter interface that everything else builds on.
 
@@ -28,7 +28,7 @@
 
 ---
 
-## Phase 2: Data Pipeline - Source Adapters `[ ]`
+## Phase 2: Data Pipeline - Source Adapters `[x]`
 
 **Goal**: Build adapters that fetch and normalize data from real sources.
 
@@ -46,7 +46,7 @@
 
 ---
 
-## Phase 3: Storage Layer (Supabase) `[ ]`
+## Phase 3: Storage Layer (Supabase) `[x]`
 
 **Goal**: Persist fetched data so the dashboard can read from a database instead of fetching live.
 
@@ -182,3 +182,4 @@
 | Date | Change | Reason |
 |------|--------|--------|
 | 2026-03-18 | Initial plan created | Project kickoff - 9 phases |
+| 2026-03-19 | Phases 1-3 completed | Core types, 4 source adapters (RSS/HN/GitHub/ArXiv), Drizzle storage layer, dedup pipeline, pipeline script |
