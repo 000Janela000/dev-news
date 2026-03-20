@@ -16,9 +16,9 @@ export function DashboardContent({
   totalMinutes,
 }: DashboardContentProps) {
   return (
-    <div className="space-y-6">
+    <>
       <BriefingSection items={briefingItems} totalMinutes={totalMinutes} />
       <MoreItemsSection items={remainingItems} />
-    </div>
+    </>
   );
 }

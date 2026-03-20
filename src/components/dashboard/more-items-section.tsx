@@ -1,29 +1,63 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
-import { ItemList } from "./item-list";
+import { useState, useMemo } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { TrackedItemCard } from "./tracked-item-card";
+import { useUserStates } from "@/hooks/use-user-states";
 import type { ItemRow } from "@/lib/db";
+import type { Category } from "@/lib/types";
+import type { UserAction } from "@/lib/db/user-state";
 
 interface MoreItemsSectionProps {
   items: ItemRow[];
 }
 
 export function MoreItemsSection({ items }: MoreItemsSectionProps) {
+  const [expanded, setExpanded] = useState(false);
+  const itemIds = useMemo(() => items.map((i) => i.id), [items]);
+  const { states: userStates } = useUserStates(expanded ? itemIds : []);
+
   if (items.length === 0) return null;
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center gap-2 border-t border-border pt-6">
-        <ChevronDown className="size-4 text-muted-foreground" />
-        <h2 className="text-sm font-medium text-muted-foreground">
-          More Items
-        </h2>
-        <span className="text-xs text-muted-foreground/50">
-          {items.length} items
+    <div className="mt-8 border-t border-border/30 pt-4">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between py-2 text-sm text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+      >
+        <span>
+          {items.length} more item{items.length !== 1 ? "s" : ""}
         </span>
-      </div>
+        {expanded ? (
+          <ChevronUp className="size-4" />
+        ) : (
+          <ChevronDown className="size-4" />
+        )}
+      </button>
 
-      <ItemList items={items} />
-    </section>
+      {expanded && (
+        <div className="mt-2 divide-y divide-border/30">
+          {items.map((item) => (
+            <TrackedItemCard
+              key={item.id}
+              id={item.id}
+              title={item.title}
+              summary={item.summary}
+              source={item.source}
+              category={item.category as Category}
+              url={item.url}
+              publishedAt={item.publishedAt}
+              importance={item.importance}
+              clusterSize={
+                "clusterSize" in item
+                  ? (item.clusterSize as number)
+                  : undefined
+              }
+              userStates={userStates[item.id] as UserAction[] | undefined}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

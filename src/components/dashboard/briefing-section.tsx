@@ -1,7 +1,6 @@
 "use client";
 
-import { Clock, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
 import { TrackedItemCard } from "./tracked-item-card";
 import type { ItemRow } from "@/lib/db";
 import type { Category } from "@/lib/types";
@@ -22,53 +21,59 @@ export function BriefingSection({ items, totalMinutes }: BriefingSectionProps) {
   const itemIds = useMemo(() => items.map((i) => i.id), [items]);
   const { states: userStates } = useUserStates(itemIds);
 
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-sm text-muted-foreground">
+          Nothing new right now. Check back later.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Zap className="size-4 text-yellow-400" />
-          <h2 className="text-sm font-semibold tracking-tight">
+    <div>
+      {/* Briefing header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">
             Your Briefing
-          </h2>
+          </h1>
+          <p className="mt-0.5 text-xs text-muted-foreground/60">
+            {items.length} items curated for you
+          </p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="size-3" />
-          <span>~{totalMinutes}m read</span>
-          <span className="text-muted-foreground/50">·</span>
-          <span>{items.length} items</span>
+        <div className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1">
+          <Clock className="size-3 text-muted-foreground/60" />
+          <span className="text-xs font-medium text-muted-foreground">
+            ~{totalMinutes}m
+          </span>
         </div>
       </div>
 
-      <div className="grid gap-2">
+      {/* Items */}
+      <div className="divide-y divide-border/30">
         {items.map((item) => (
-          <div key={item.id} className="relative">
-            <TrackedItemCard
-              id={item.id}
-              title={item.title}
-              summary={item.summary}
-              content={item.content}
-              source={item.source}
-              sourceType={item.sourceType}
-              category={item.category as Category}
-              url={item.url}
-              publishedAt={item.publishedAt}
-              tags={item.tags}
-              importance={item.importance}
-              metadata={item.metadata as Record<string, unknown> | null}
-              userStates={userStates[item.id] as UserAction[] | undefined}
-              clusterSize={"clusterSize" in item ? (item.clusterSize as number) : undefined}
-            />
-            <Badge
-              variant="secondary"
-              className="absolute bottom-3 right-4 text-[10px] text-muted-foreground/70"
-            >
-              {item.readingTimeMin}m
-            </Badge>
-          </div>
+          <TrackedItemCard
+            key={item.id}
+            id={item.id}
+            title={item.title}
+            summary={item.summary}
+            source={item.source}
+            category={item.category as Category}
+            url={item.url}
+            publishedAt={item.publishedAt}
+            importance={item.importance}
+            readingTimeMin={item.readingTimeMin}
+            clusterSize={
+              "clusterSize" in item
+                ? (item.clusterSize as number)
+                : undefined
+            }
+            userStates={userStates[item.id] as UserAction[] | undefined}
+          />
         ))}
       </div>
-    </section>
+    </div>
   );
 }

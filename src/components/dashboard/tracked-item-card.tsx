@@ -2,147 +2,144 @@
 
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { ExternalLink, Star, MessageSquare, Tag } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { CATEGORY_LABELS, type Category } from "@/lib/types";
-import { CATEGORY_BADGE_COLORS } from "./category-tabs";
+import { ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Category } from "@/lib/types";
+import { CATEGORY_LABELS } from "@/lib/types";
 import { ItemActions } from "./item-actions";
-import { stripHtml } from "@/lib/html";
 import type { UserAction } from "@/lib/db/user-state";
+
+const CATEGORY_COLORS: Record<Category, string> = {
+  models_releases: "bg-blue-400",
+  tools_frameworks: "bg-emerald-400",
+  practices_approaches: "bg-amber-400",
+  industry_trends: "bg-purple-400",
+  research_papers: "bg-rose-400",
+};
+
+function getSourceLabel(source: string): string {
+  if (source.startsWith("github-release:"))
+    return source.replace("github-release:", "");
+  if (source.startsWith("reddit:"))
+    return "r/" + source.replace("reddit:", "");
+  const labels: Record<string, string> = {
+    "rss:anthropic": "Anthropic",
+    "rss:openai": "OpenAI",
+    "rss:deepmind": "DeepMind",
+    "rss:huggingface": "HuggingFace",
+    "rss:vercel": "Vercel",
+    "rss:the-decoder": "The Decoder",
+    "rss:ai-news": "AI News",
+    "rss:marktechpost": "MarkTechPost",
+    "rss:venturebeat-ai": "VentureBeat",
+    "rss:microsoft-ai": "Microsoft AI",
+    hackernews: "Hacker News",
+    github: "GitHub",
+    devto: "Dev.to",
+  };
+  return labels[source] ?? source.replace("rss:", "");
+}
 
 interface TrackedItemCardProps {
   id: string;
   title: string;
   summary?: string | null;
-  content?: string | null;
   source: string;
-  sourceType: string;
   category: Category;
   url: string;
   publishedAt: Date;
-  tags?: string[] | null;
   importance?: number | null;
-  metadata?: Record<string, unknown> | null;
-  userStates?: UserAction[];
+  readingTimeMin?: number;
   clusterSize?: number;
+  userStates?: UserAction[];
 }
-
-function getSourceLabel(source: string): string {
-  if (source.startsWith("github-release:")) return source.replace("github-release:", "") + " Release";
-  if (source.startsWith("reddit:")) return "r/" + source.replace("reddit:", "");
-  const labels: Record<string, string> = {
-    "rss:anthropic": "Anthropic", "rss:openai": "OpenAI", "rss:deepmind": "DeepMind",
-    "rss:meta-ai": "Meta AI", "rss:microsoft-ai": "Microsoft AI", "rss:huggingface": "HF",
-    "rss:mistral": "Mistral", "rss:vercel": "Vercel", "rss:the-decoder": "The Decoder",
-    "rss:ai-news": "AI News", "rss:marktechpost": "MarkTechPost", "rss:venturebeat-ai": "VentureBeat",
-    hackernews: "HN", github: "GitHub", "github-releases": "Release", devto: "Dev.to",
-    "arxiv:cs-ai": "arXiv AI", "arxiv:cs-cl": "arXiv NLP",
-  };
-  return labels[source] ?? source.replace("rss:", "");
-}
-
-function getSourceColor(sourceType: string): string {
-  const colors: Record<string, string> = {
-    rss: "bg-blue-500/10 text-blue-400",
-    hackernews: "bg-orange-500/10 text-orange-400",
-    reddit: "bg-orange-600/10 text-orange-300",
-    github: "bg-gray-500/10 text-gray-300",
-    arxiv: "bg-red-500/10 text-red-400",
-  };
-  return colors[sourceType] ?? "bg-muted text-muted-foreground";
-}
-
 
 export function TrackedItemCard({
   id,
   title,
   summary,
-  content,
   source,
-  sourceType,
   category,
+  url,
   publishedAt,
-  tags,
   importance,
-  metadata,
-  userStates,
+  readingTimeMin,
   clusterSize,
+  userStates,
 }: TrackedItemCardProps) {
-  const displayText = summary || content || "";
-  const stars = metadata?.stars as number | undefined;
-  const numComments = metadata?.numComments as number | undefined;
-
   return (
-    <Link
-      href={`/item/${id}`}
-      className="group relative block rounded-lg border border-border bg-card p-4 transition-colors hover:border-muted-foreground/40"
-    >
-      {/* Badges */}
-      <div className="mb-2 flex flex-wrap items-center gap-1.5">
-        <Badge
-          className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${CATEGORY_BADGE_COLORS[category]}`}
-        >
-          {CATEGORY_LABELS[category].split(" ")[0]}
-        </Badge>
-        <Badge
-          className={`rounded-full border-0 px-2 py-0.5 text-[10px] ${getSourceColor(sourceType)}`}
-        >
-          {getSourceLabel(source)}
-        </Badge>
-        {importance && importance >= 4 && (
-          <Badge className="rounded-full border-0 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400">
-            High Impact
-          </Badge>
-        )}
-        {clusterSize && clusterSize > 1 && (
-          <Badge className="rounded-full border-0 bg-purple-500/10 px-2 py-0.5 text-[10px] text-purple-400">
-            {clusterSize} sources
-          </Badge>
-        )}
-      </div>
+    <div className="group relative">
+      <Link
+        href={`/item/${id}`}
+        className="block rounded-lg border border-transparent p-4 transition-all hover:border-border/50 hover:bg-muted/30"
+      >
+        {/* Category indicator + title */}
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              "mt-1.5 size-1.5 shrink-0 rounded-full",
+              CATEGORY_COLORS[category]
+            )}
+            title={CATEGORY_LABELS[category]}
+          />
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[15px] font-medium leading-snug tracking-tight">
+              {title}
+            </h3>
 
-      {/* Title */}
-      <h3 className="mb-1.5 line-clamp-2 pr-8 text-sm font-medium leading-snug tracking-tight">
-        {title}
-      </h3>
+            {summary && (
+              <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
+                {summary}
+              </p>
+            )}
 
-      {/* Summary */}
-      {displayText && (
-        <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-          {stripHtml(displayText)}
-        </p>
-      )}
+            {/* Metadata line */}
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground/60">
+              <span>{getSourceLabel(source)}</span>
+              <span>·</span>
+              <span>
+                {formatDistanceToNow(new Date(publishedAt), {
+                  addSuffix: true,
+                })}
+              </span>
+              {readingTimeMin && (
+                <>
+                  <span>·</span>
+                  <span>{readingTimeMin}m read</span>
+                </>
+              )}
+              {clusterSize && clusterSize > 1 && (
+                <>
+                  <span>·</span>
+                  <span className="text-purple-400/70">
+                    {clusterSize} sources
+                  </span>
+                </>
+              )}
+              {importance && importance >= 4 && (
+                <>
+                  <span>·</span>
+                  <span className="text-amber-400/70">high impact</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </Link>
 
-      {/* Footer */}
-      <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground/70">
-        <span>
-          {formatDistanceToNow(new Date(publishedAt), { addSuffix: true })}
-        </span>
-        {stars !== undefined && (
-          <span className="flex items-center gap-1">
-            <Star className="h-3 w-3" />
-            {stars.toLocaleString()}
-          </span>
-        )}
-        {numComments !== undefined && (
-          <span className="flex items-center gap-1">
-            <MessageSquare className="h-3 w-3" />
-            {numComments}
-          </span>
-        )}
-        {tags && tags.length > 0 && tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="flex items-center gap-0.5 text-muted-foreground/50">
-            <Tag className="h-2.5 w-2.5" />
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      {/* Actions */}
-      <div className="absolute right-4 top-4 flex items-center gap-1">
+      {/* Actions — appear on hover */}
+      <div className="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
         <ItemActions itemId={id} initialStates={userStates} compact />
-        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded p-1 text-muted-foreground/50 transition-colors hover:bg-muted hover:text-muted-foreground"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ExternalLink className="size-3.5" />
+        </a>
       </div>
-    </Link>
+    </div>
   );
 }

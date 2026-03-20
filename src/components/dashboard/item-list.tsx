@@ -190,15 +190,11 @@ export function ItemList({ items, loading }: ItemListProps) {
               id={item.id}
               title={item.title}
               summary={item.summary}
-              content={item.content}
               source={item.source}
-              sourceType={item.sourceType}
               category={item.category as Category}
               url={item.url}
               publishedAt={item.publishedAt}
-              tags={item.tags}
               importance={item.importance}
-              metadata={item.metadata as Record<string, unknown> | null}
               userStates={userStates[item.id]}
               clusterSize={"clusterSize" in item ? (item.clusterSize as number) : undefined}
             />
